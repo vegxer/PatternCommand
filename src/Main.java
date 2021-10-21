@@ -1,9 +1,25 @@
 import Pattern.Commander;
 import Pattern.Command;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
+    public static void printCommands(ArrayList<Command> commands) {
+        for (Command command : commands) {
+            System.out.print(command.getCommandName());
+
+            if (!command.getArgsDescription().isEmpty()) {
+                for (String arg : command.getArgsDescription())
+                    System.out.print(" " + arg);
+            }
+
+            System.out.println(" - " + command.getDescription());
+        }
+    }
+
     public static void main(String[] args) {
         System.out.print("Введите рабочую директорию: ");
         Scanner scanner = new Scanner(System.in);
@@ -26,7 +42,7 @@ public class Main {
 
             commander.addCommand(new Command("/help",
                     "вывести список команд",
-                    commandArgs -> System.out.println(commander.getCommands())));
+                    commandArgs -> printCommands(commander.getCommands())));
 
             commander.addCommand(new Command("/go_to_parent",
                     "перейти к родительскому каталогу",
@@ -34,7 +50,7 @@ public class Main {
 
             commander.addCommand(new Command("/go_to_child",
                     "перейти к дочернему каталогу",
-                    "<название каталога>",
+                    new ArrayList<>(List.of("<название каталога>")),
                     commandArgs -> dir.goToChildDirectory(commandArgs.get(0))));
 
             commander.addCommand(new Command("/parent",
@@ -43,13 +59,13 @@ public class Main {
 
             commander.addCommand(new Command("/child?",
                     "существует ли каталог с данным названием в рабочем каталоге",
-                    "<название каталога>",
+                    new ArrayList<>(List.of("<название каталога>")),
                     commandArgs -> System.out.println("Дочерний каталог " +
                             (dir.existsChild(commandArgs.get(0)) ? "существует" : "не существует"))));
 
             commander.addCommand(new Command("/create",
                     "создать новый каталог в текущем",
-                    "<название каталога>",
+                    new ArrayList<>(List.of("<название каталога>")),
                     commandArgs -> dir.createDirectory(commandArgs.get(0))));
 
             commander.addCommand(new Command("/delete_all",
@@ -62,21 +78,18 @@ public class Main {
 
             commander.addCommand(new Command("/exists?",
                     "проверка на наличие вложенного каталога",
-                    "<название каталога>",
+                    new ArrayList<>(List.of("<название каталога>")),
                     commandArgs -> System.out.println("Вложенный каталог " +
                             (dir.existsDirectory(commandArgs.get(0)) ? "существует" : "не существует"))));
 
             commander.addCommand(new Command("/list",
                     "вывести список файлов текущей директории",
-                    "[<расширение файла>]",
-                    commandArgs -> {
-                        if (commandArgs.isEmpty())
-                            System.out.println(dir.getDirectoryFiles());
-                        else if (commandArgs.size() == 1)
-                            System.out.println(dir.getDirectoryFiles(commandArgs.get(0)));
-                        else
-                            throw new IllegalArgumentException("Неверное количество аргументов");
-                    }));
+                    new ArrayList<>(List.of("<расширение файла>")),
+                    commandArgs -> System.out.println(dir.getDirectoryFiles(commandArgs.get(0)))));
+
+            commander.addCommand(new Command("/list",
+                    "вывести список файлов текущей директории",
+                    commandArgs -> System.out.println(dir.getDirectoryFiles())));
 
             //вызов команд
             while (true) {

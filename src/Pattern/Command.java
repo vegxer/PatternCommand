@@ -5,22 +5,22 @@ import java.util.ArrayList;
 
 public class Command implements Executable {
     private Executable command;
-    private String commandName, description = null, paramsDescription = null;
+    private String commandName, description;
+    private final ArrayList<String> argsDescription;
 
-
-    public Command(String commandName, Executable command) {
-        setCommandName(commandName);
-        setCommand(command);
-    }
 
     public Command(String commandName, String commandDescription, Executable command) {
-        this(commandName, command);
+        setCommand(command);
+        setCommandName(commandName);
         setDescription(commandDescription);
+        argsDescription = new ArrayList<>();
     }
 
-    public Command(String commandName, String commandDescription, String paramsDescription, Executable command) {
+    public Command(String commandName, String commandDescription, ArrayList<String> argsDescription, Executable command) {
         this(commandName, commandDescription, command);
-        setParamsDescription(paramsDescription);
+        if (argsDescription == null)
+            throw new NullPointerException();
+        this.argsDescription.addAll(argsDescription);
     }
 
 
@@ -56,13 +56,17 @@ public class Command implements Executable {
         this.description = description;
     }
 
-    public String getParamsDescription() {
-        return paramsDescription;
+    public ArrayList<String> getArgsDescription() {
+        return new ArrayList<>(argsDescription);
     }
 
-    public void setParamsDescription(String paramsDescription) {
-        if (paramsDescription == null)
+    public void insertArgDescription(String argDescription, int index) {
+        if (argDescription == null)
             throw new NullPointerException();
-        this.paramsDescription = paramsDescription;
+        argsDescription.add(index, argDescription);
+    }
+
+    public void removeArgDescription(int index) {
+        argsDescription.remove(index);
     }
 }

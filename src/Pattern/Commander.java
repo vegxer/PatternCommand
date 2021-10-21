@@ -7,13 +7,14 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Commander {
-    private final ArrayList<Command> commands;
+    private ArrayList<Command> commands;
 
 
     public Commander(ArrayList<Command> commands) {
         if (commands == null)
             throw new NullPointerException();
-        this.commands = (ArrayList<Command>)commands.clone();
+        for (Command command : commands)
+            addCommand(command);
     }
 
     public Commander() {
@@ -21,25 +22,34 @@ public class Commander {
     }
 
 
-    public void executeCommand(String commandName) throws IOException {
-        commandName += " ";
-        ArrayList<String> arguments = new ArrayList<>(Arrays.asList(commandName.split(" ")));
+    public void executeCommand(String command) throws IOException {
+        command += " ";
+        ArrayList<String> arguments = new ArrayList<>(Arrays.asList(command.split(" ")));
         removeEmptyEntries(arguments);
         if (arguments.size() == 0)
             throw new IllegalArgumentException("Неверно введена команда");
 
-        Command command = getByName(arguments.get(0));
+        String commandName = arguments.get(0);
         arguments.remove(0);
-        command.execute(arguments);
+        getBy(commandName, arguments.size()).execute(arguments);
     }
 
-    private Command getByName(String commandName) {
+    public Command getBy(String commandName, int argsCount) {
         for (Command command : commands) {
-            if (command.getCommandName().equals(commandName))
+            if (command.getCommandName().equals(commandName) && argsCount == command.getArgsDescription().size())
                 return command;
         }
 
         throw new IllegalArgumentException("Команды " + commandName + " не существует");
+    }
+
+    public boolean exists(String commandName, int argsCount) {
+        for (Command command : commands) {
+            if (command.getCommandName().equals(commandName) && argsCount == command.getArgsDescription().size())
+                return true;
+        }
+
+        return false;
     }
 
     private void removeEmptyEntries(ArrayList<String> list) {
@@ -49,24 +59,12 @@ public class Commander {
     public void addCommand(Command command) {
         if (command == null)
             throw new NullPointerException();
+        if (exists(command.getCommandName(), command.getArgsDescription().size()))
+            throw new IllegalArgumentException("Команда с такими параметрами уже существует");
         commands.add(command);
     }
 
-    public String getCommands() {
-        String commandNames = "";
-
-        for (Command command : commands) {
-            commandNames = commandNames.concat(command.getCommandName());
-
-            if (command.getParamsDescription() != null)
-                commandNames = commandNames.concat(" " + command.getParamsDescription());
-
-            if (command.getDescription() != null)
-                commandNames = commandNames.concat(" - " + command.getDescription());
-
-            commandNames = commandNames.concat("\n");
-        }
-
-        return commandNames;
+    public ArrayList<Command> getCommands() {
+        return new ArrayList<>(commands);
     }
 }
