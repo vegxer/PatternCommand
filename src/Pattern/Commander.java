@@ -2,9 +2,7 @@ package Pattern;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.StringTokenizer;
 
 public class Commander {
     private ArrayList<Command> commands;
@@ -23,9 +21,7 @@ public class Commander {
 
 
     public void executeCommand(String command) throws IOException {
-        command += " ";
-        ArrayList<String> arguments = new ArrayList<>(Arrays.asList(command.split(" ")));
-        removeEmptyEntries(arguments);
+        ArrayList<String> arguments = splitArguments(command);
         if (arguments.size() == 0)
             throw new IllegalArgumentException("Неверно введена команда");
 
@@ -52,10 +48,6 @@ public class Commander {
         return false;
     }
 
-    private void removeEmptyEntries(ArrayList<String> list) {
-        list.removeIf(str -> str.isEmpty() || str.isBlank());
-    }
-
     public void addCommand(Command command) {
         if (command == null)
             throw new NullPointerException();
@@ -66,5 +58,64 @@ public class Commander {
 
     public ArrayList<Command> getCommands() {
         return new ArrayList<>(commands);
+    }
+
+    private ArrayList<String> splitArguments(String command) {
+        int state = 0;
+        StringTokenizer tok = new StringTokenizer(command, "\"' ", true);
+        ArrayList<String> result = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean lastTokenHasBeenQuoted = false;
+
+        while (true) {
+            while (tok.hasMoreTokens()) {
+                String nextTok = tok.nextToken();
+                switch (state) {
+                    case 1 -> {
+                        if ("'".equals(nextTok)) {
+                            lastTokenHasBeenQuoted = true;
+                            state = 0;
+                        } else {
+                            current.append(nextTok);
+                        }
+                        continue;
+                    }
+                    case 2 -> {
+                        if ("\"".equals(nextTok)) {
+                            lastTokenHasBeenQuoted = true;
+                            state = 0;
+                        } else {
+                            current.append(nextTok);
+                        }
+                        continue;
+                    }
+                }
+
+                if ("'".equals(nextTok)) {
+                    state = 1;
+                } else if ("\"".equals(nextTok)) {
+                    state = 2;
+                } else if (" ".equals(nextTok)) {
+                    if (lastTokenHasBeenQuoted || current.length() > 0) {
+                        result.add(current.toString());
+                        current.setLength(0);
+                    }
+                } else {
+                    current.append(nextTok);
+                }
+
+                lastTokenHasBeenQuoted = false;
+            }
+
+            if (lastTokenHasBeenQuoted || current.length() > 0) {
+                result.add(current.toString());
+            }
+
+            if (state != 1 && state != 2) {
+                return result;
+            }
+
+            throw new IllegalArgumentException();
+        }
     }
 }
